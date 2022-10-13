@@ -14,8 +14,7 @@
 # Sn1per
 # TomNomNom tools..
 
-
-figlet DjediToolbox | lolcat && echo "v.0.1"
+figlet DjediToolbelt | lolcat && echo "v.0.1"
 echo "[*] Installing Pentest & Bug Bounty Toolbox Suite..."
 
 # if not sudo, exit
@@ -24,10 +23,8 @@ if ! [ $(id -u) = 0 ]; then
     exit 1
 fi
 
-echo "[+] Installing / Updating nmap naabu nuclei burpsuite feroxbuster nikto \ 
-masscan gobuster seclists sqlmap git docker docker.io..."
-sudo apt install nmap naabu nuclei burpsuite feroxbuster nikto \ 
-masscan gobuster seclists sqlmap git docker docker.io
+echo "[+] Installing / Updating nmap naabu nuclei burpsuite feroxbuster nikto masscan gobuster seclists sqlmap git docker docker.io..."
+sudo apt install nmap naabu nuclei burpsuite feroxbuster nikto masscan gobuster seclists sqlmap git docker docker.io -y
 
 cd /opt
 if [ ! -d pimpmykali ]; then
