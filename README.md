@@ -3,7 +3,7 @@
 This script installs / updates some of the important key tools for Pentesters and Bug Bounty Hunters.  You probably
 have most of these tools installed already (as it was designed for use with Kali/Debian/Ubuntu), but it is useful for 
 me to have it all together in one script so I don't have to take the time to search for everything when I make a 
-new VM or have to go through and install everything manually.
+new VM or have to go through and install or update everything manually.
 
 This is a rough version as it is my first attempt at building some sort of a recon framework (if you can call
 it that) for Pentesting, CTFs as well as Bug Bounties.  There will be an accompanying automation script as well.
