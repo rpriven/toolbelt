@@ -6,10 +6,10 @@ me to have it all together in one script so I don't have to take the time to sea
 new VM or have to go through and install everything manually.
 
 This is a rough version as it is my first attempt at building some sort of a recon framework (if you can call
-it that) for CTFs as well as Bug Bounties.  There will be an accompanying automation script as well.
+it that) for Pentesting, CTFs as well as Bug Bounties.  There will be an accompanying automation script as well.
 
 **This installs a good amount of tools, if you are looking for something light, you may want to remove what you do not want or need before running the script.**
-*It is also a good idea to read through unfamiliar code before executing it anyway*
+*It is also a good idea to read through unfamiliar code before executing it anyway.*
 
 ## Installation
 
