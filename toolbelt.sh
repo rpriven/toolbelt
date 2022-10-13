@@ -64,7 +64,7 @@ if [ ! -d /opt/waymore ]; then
 fi
 
 echo "[+] Installing wfuzz and scrapy..."
-pip install wfuzz scrapy
+pip3 install wfuzz scrapy
 
 # Go Tools
 echo "[+] Installing nuclei..."
