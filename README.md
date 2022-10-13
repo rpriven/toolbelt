@@ -29,16 +29,16 @@ curl https://raw.githubusercontent.com/rpriven/toolbelt/main/toolbelt.sh | sudo 
 
 ## What is on the Toolbelt:
 
-- nmap
+- Nmap
 - naabu
 - Nuclei
-- burpsuite
+- Burp Suite
 - feroxbuster
 - nikto
 - masscan
-- gobuster
-- seclists
-- sqlmap
+- Gobuster
+- SecLists
+- SQLmap
 - git
 - docker
 - docker.io
