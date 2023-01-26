@@ -1,5 +1,11 @@
 # Djedi Toolbelt
 
+## Update: Check out the new python version
+
+This is still being updated but I think it is much more efficient and has so much more than the previous versions.
+
+## Overview
+
 This script installs / updates some of the important key tools for Pentesters and Bug Bounty Hunters.  You probably
 have most of these tools installed already (as it was designed for use with Kali/Debian/Ubuntu), but it is useful for 
 me to have it all together in one script so I don't have to take the time to search for everything when I make a 
