@@ -4,6 +4,8 @@
 
 This is still being updated but I think it is much more efficient and has so much more than the previous versions.
 
+*However, please note that there is an issue with the go tools and the useful scripts being downloaded in the /root directory instead of /home/kali because the script must be run as root.  Working on a fix for this*
+
 ## Overview
 
 This script installs / updates some of the important key tools for Pentesters and Bug Bounty Hunters.  You probably
