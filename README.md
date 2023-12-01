@@ -1,8 +1,30 @@
 # Djedi Toolbelt
 
-## Update: Check out the new python version
+This is intended for new Kali installs to install a large amount of useful tools not included with Kali in a short amount of time.
 
-This is still being updated but I think it is much more efficient and has so much more than the previous versions.
+It is recommended if this is a new Kali VM to run PimpMyKali and run the 'N' option first.  Dewalt has done an excellent job on this and keeps getting better every time I use it.  You can check it out here:  https://github.com/Dewalt-arch/pimpmykali
+
+## Updates
+
+Python version got some important tweaks to speed things up and smooth out some issues.  It now takes only about 1 minute compared to 10 minutes or so using the bash version.  Still may have some tweaks to work through but it seems to be working well in the several tests I've done.  I will be putting this into a script shortly but here is instructions.
+
+### toolbelt.py Installation
+
+First we must install apt-fast
+```bash
+apt-get install aria2
+/bin/bash -c "$(curl -sL https://git.io/vokNn)"
+cp apt-fast /usr/local/sbin/
+chmod +x /usr/local/sbin/apt-fast
+cp apt-fast.conf /etc
+```
+
+Then we should be good to go:
+```bash
+curl https://raw.githubusercontent.com/rpriven/toolbelt/main/toolbelt.py | sudo python3
+```
+
+Still getting an error about 'jammy' not being signed and 'docker' package has no candidate.  Working on fixes.
 
 *However, please note that there is an issue with the go tools and the useful scripts being downloaded in the /root directory instead of /home/kali because the script must be run as root.  Working on a fix for this*
 
@@ -19,7 +41,7 @@ it that) for Pentesting, CTFs as well as Bug Bounties.  There will be an accompa
 **This installs a good amount of tools, if you are looking for something light, you may want to remove what you do not want or need before running the script.**
 *It is also a good idea to read through unfamiliar code before executing it anyway.*
 
-## Installation
+## (Old) Installation
 
 Simply download the script and run it:
 
