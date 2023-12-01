@@ -2,20 +2,20 @@
 
 This is intended for new Kali installs to install a large amount of useful tools not included with Kali in a short amount of time.
 
-It is recommended if this is a new Kali VM to run PimpMyKali and run the 'N' option first.  Dewalt has done an excellent job on this and keeps getting better every time I use it.  You can check it out here:  https://github.com/Dewalt-arch/pimpmykali
+It is recommended if this is a new Kali VM to run PimpMyKali and run the 'N' option first.  Dewalt has done an excellent job on this and keeps getting better every time I use it.  You can check it out here:  https://github.com/Dewalt-arch/pimpmykali  It is also integrated into toolbelt but I always like running this first anyway.
 
 ## Updates
 
-Python version got some important tweaks to speed things up and smooth out some issues.  It now takes only about 1 minute compared to 10 minutes or so using the bash version.  Still may have some tweaks to work through but it seems to be working well in the several tests I've done.  I will be putting this into a script shortly but here is instructions.
+Python version got some important tweaks to speed things up and smooth out some issues.  Actually the python code has not changed yet, it is just now actually working as intended since I fixed the apt-fast installation.  It now takes only 1 to 3 minutes compared to 10 to 15 minutes or so using the bash version.  Still may have some tweaks to work through but it seems to be working well in the several tests I've done.  I will be putting this into a script shortly but here is instructions.
 
 ### toolbelt.py Installation
 
 First we must install apt-fast
 ```bash
 sudo apt install aria2 -y
-/bin/bash -c "$(curl -sL https://git.io/vokNn)"
+sudo /bin/bash -c "$(curl -sL https://git.io/vokNn)"
 cp apt-fast /usr/local/sbin/
-chmod +x /usr/local/sbin/apt-fast
+sudo chmod +x /usr/local/sbin/apt-fast
 cp apt-fast.conf /etc
 ```
 
@@ -24,7 +24,7 @@ Then we should be good to go:
 curl https://raw.githubusercontent.com/rpriven/toolbelt/main/toolbelt.py | sudo python3
 ```
 
-Still getting an error about 'jammy' not being signed and 'docker' package has no candidate.  Working on fixes.
+Still a couple minor errors and I want to put this into a script soon.
 
 *However, please note that there is an issue with the go tools and the useful scripts being downloaded in the /root directory instead of /home/kali because the script must be run as root.  Working on a fix for this*
 
