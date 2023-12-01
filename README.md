@@ -12,7 +12,7 @@ Python version got some important tweaks to speed things up and smooth out some 
 
 First we must install apt-fast
 ```bash
-apt-get install aria2
+sudo apt install aria2 -y
 /bin/bash -c "$(curl -sL https://git.io/vokNn)"
 cp apt-fast /usr/local/sbin/
 chmod +x /usr/local/sbin/apt-fast
