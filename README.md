@@ -144,6 +144,7 @@ wfuzz, arjun, scrapy, tld, requests, fuzzywuzzy
 - **Python:** 3.6+
 - **Package Manager:** apt
 - **Privileges:** sudo access (script runs as user, not root)
+- **Optional:** gum (for interactive multi-select) - `go install github.com/charmbracelet/gum@latest`
 
 ---
 
@@ -163,8 +164,24 @@ python3 toolbelt.py
 python3 toolbelt.py
 # Select: 2) Browse & Select Categories
 # Choose category (e.g., Go Tools)
-# Install all or select specific tools
+# Option 1: Install all tools
+# Option 2: Select specific tools (interactive multi-select with gum)
 ```
+
+### Interactive Tool Selection (gum)
+
+With gum installed, you get beautiful interactive multi-select:
+
+```bash
+python3 toolbelt.py
+# Select: 2) Browse & Select Categories
+# Choose: Go Tools
+# Select: 2) Select Specific Tools
+# Use SPACE to toggle, ENTER when done
+# Confirm selection and install
+```
+
+**Without gum:** The script will prompt you to install it or fall back to "Install All" option.
 
 ### Check Installed Tools
 

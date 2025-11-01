@@ -16,6 +16,7 @@ from utils import (
     check_apt,
     check_sudo,
     check_command_exists,
+    gum_multi_select,
     print_banner,
     print_section,
     print_success,
@@ -259,8 +260,15 @@ def show_tool_selection_menu(category_id: str, distro_type: str):
     print_info(cat_info['description'])
     print()
 
+    # Check if gum is available
+    has_gum = check_command_exists('gum')
+
     print(colorize("1)", 'green') + " Install All Tools in Category")
-    print(colorize("2)", 'green') + " Select Specific Tools (Coming Soon)")
+    if has_gum:
+        print(colorize("2)", 'green') + " Select Specific Tools (multi-select)")
+    else:
+        print(colorize("2)", 'green') + " Select Specific Tools (requires gum)")
+        print_info("   Install gum: go install github.com/charmbracelet/gum@latest")
     print()
     print(colorize("0)", 'red') + " Back")
     print()
@@ -277,8 +285,7 @@ def tool_selection_menu(category_id: str, distro_type: str, logger):
         elif choice == '1':
             install_category_all(category_id, distro_type, logger)
         elif choice == '2':
-            print_warning("Individual tool selection coming in next update!")
-            input("\nPress Enter to continue...")
+            install_category_selected(category_id, distro_type, logger)
         else:
             print_error("Invalid option. Please try again.")
             input("\nPress Enter to continue...")
@@ -309,6 +316,107 @@ def install_category_all(category_id: str, distro_type: str, logger):
         print_success(f"{cat_info['name']} installation complete!")
     else:
         print_warning(f"{cat_info['name']} installation completed with some errors")
+
+    input("\nPress Enter to continue...")
+
+
+def install_category_selected(category_id: str, distro_type: str, logger):
+    """Install selected tools from a category using gum multi-select"""
+    cat_info = config.CATEGORIES[category_id]
+
+    # Check if gum is available
+    if not check_command_exists('gum'):
+        print()
+        print_error("gum is not installed!")
+        print_info("gum is required for interactive multi-select")
+        print()
+        print_info("Install gum with:")
+        print("  go install github.com/charmbracelet/gum@latest")
+        print()
+        print_info("Make sure $GOPATH/bin is in your PATH")
+        print()
+        input("Press Enter to continue...")
+        return
+
+    print_section(f"Select {cat_info['name']}")
+
+    # Get tool list based on category
+    tools_list: List[str] = []
+
+    if category_id == 'apt':
+        tools_list = config.get_apt_tools_for_distro(distro_type)
+    elif category_id == 'go':
+        tools_list = list(config.GO_TOOLS.keys())
+    elif category_id == 'opt':
+        tools_list = list(config.get_opt_tools_for_distro(distro_type).keys())
+    elif category_id == 'python':
+        tools_list = list(config.PYTHON_TOOLS.keys())
+    elif category_id == 'docker':
+        tools_list = list(config.DOCKER_TOOLS.keys())
+    elif category_id == 'scripts':
+        print()
+        print_info("Scripts category downloads all scripts as a set")
+        print_info("Use option 1 to install all scripts")
+        print()
+        input("Press Enter to continue...")
+        return
+
+    if not tools_list:
+        print_error(f"No tools available for {cat_info['name']}")
+        input("\nPress Enter to continue...")
+        return
+
+    # Show count
+    print_info(f"Available tools: {len(tools_list)}")
+    print()
+    print(colorize("TIP: Use SPACE to select, ENTER when done, Ctrl+C to cancel", 'yellow'))
+    print()
+
+    # Use gum for multi-select
+    selected = gum_multi_select(
+        tools_list,
+        header=f"Select {cat_info['name']} to install:"
+    )
+
+    if not selected:
+        print()
+        print_warning("No tools selected")
+        input("\nPress Enter to continue...")
+        return
+
+    # Show what was selected
+    print()
+    print_section(f"Installing {len(selected)} Selected Tools")
+    for tool in selected:
+        print(colorize(f"  • {tool}", 'cyan'))
+    print()
+
+    # Confirm installation
+    response = input(colorize("Proceed with installation? [Y/n]: ", 'yellow')).strip().lower()
+    if response == 'n':
+        print_warning("Installation cancelled")
+        input("\nPress Enter to continue...")
+        return
+
+    # Install selected tools
+    success = False
+
+    if category_id == 'apt':
+        success = installer.install_apt_tools(tools=selected, distro_type=distro_type, logger=logger)
+    elif category_id == 'go':
+        success = installer.install_go_tools(tools=selected, logger=logger)
+    elif category_id == 'opt':
+        success = installer.install_opt_tools(tools=selected, distro_type=distro_type, logger=logger)
+    elif category_id == 'python':
+        success = installer.install_python_tools(tools=selected, logger=logger)
+    elif category_id == 'docker':
+        success = installer.install_docker_tools(tools=selected, logger=logger)
+
+    print()
+    if success:
+        print_success(f"Selected {cat_info['name']} installation complete!")
+    else:
+        print_warning(f"Selected {cat_info['name']} installation completed with some errors")
 
     input("\nPress Enter to continue...")
 

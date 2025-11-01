@@ -170,6 +170,45 @@ def check_command_exists(command: str) -> bool:
         return False
 
 
+def gum_multi_select(
+    options: List[str],
+    header: str = "Select items (space to select, enter when done):"
+) -> List[str]:
+    """
+    Use gum to let user multi-select from options
+
+    Args:
+        options: List of options to choose from
+        header: Header text to display
+
+    Returns:
+        List of selected options
+    """
+    if not check_command_exists('gum'):
+        return []
+
+    try:
+        result = subprocess.run(
+            ['gum', 'choose', '--no-limit', '--header', header] + options,
+            capture_output=True,
+            text=True,
+            timeout=300  # 5 minute timeout
+        )
+
+        if result.returncode == 0:
+            # Parse output - one item per line
+            selected = [item.strip() for item in result.stdout.split('\n') if item.strip()]
+            return selected
+        return []
+
+    except subprocess.TimeoutExpired:
+        print_warning("Selection timed out")
+        return []
+    except Exception as e:
+        logging.error(f"gum multi-select failed: {e}")
+        return []
+
+
 def check_apt() -> bool:
     """Check if apt package manager is available"""
     return check_command_exists('apt')
