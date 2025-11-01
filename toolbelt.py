@@ -1,306 +1,397 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
+"""
+Djedi Toolbelt v2.0 - Security Tool Installer
+Interactive package manager for pentesting and security research tools
+"""
 
-######################
-''' Djedi Toolbelt '''
-''' Python3 Reboot '''
-######################
+import sys
+import os
+from typing import Optional, List, Dict
 
-'''
-#########################################################################
+# Import local modules
+from utils import (
+    setup_logging,
+    detect_distro,
+    check_root_discourage,
+    check_apt,
+    check_sudo,
+    check_command_exists,
+    print_banner,
+    print_section,
+    print_success,
+    print_info,
+    print_warning,
+    print_error,
+    colorize,
+)
+import config
+import installer
 
-WARNING: 
 
-    This script is approximately 5 GB and will take a while to run.
+# ============================================================================
+# Fresh Detection & Integration
+# ============================================================================
 
-    Please make sure you check this before installing.
+def check_fresh_installed() -> bool:
+    """Check if fresh CLI tools are installed"""
+    fresh_tools = ['fzf', 'rg', 'bat']
+    return all(check_command_exists(tool) for tool in fresh_tools)
 
-    Menu will be coming in one of the next updates to help
-    cater to your preferences and custom requirements.
 
-#########################################################################         
-'''
+def prompt_install_fresh():
+    """Prompt user to install fresh if not detected"""
+    if check_fresh_installed():
+        return
 
-'''
-TO DO:
+    print()
+    print_warning("Fresh CLI tools not detected")
+    print_info("Fresh provides modern CLI productivity tools (fzf, ripgrep, bat, etc.)")
+    print_info("Repository: https://github.com/rpriven/fresh")
+    print()
 
-    Finish - apt threading (sort of, with apt-fast)
+    response = input(colorize("Would you like to install fresh first? [y/N]: ", 'yellow')).strip().lower()
+    if response == 'y':
+        print()
+        print_info("To install fresh, run:")
+        print()
+        print("  git clone https://github.com/rpriven/fresh.git && cd fresh")
+        print("  ./fresh.sh")
+        print()
+        print_info("Then come back and run toolbelt again!")
+        sys.exit(0)
 
-    Add - Menu selection for the various categories:
-            - apt tools only
-            - opt tools only
-            - python tools only
-            - go tools only
-            - docker tools only
-            - scripts only
 
-    Threading for /opt tools
+# ============================================================================
+# Level 1: Main Menu
+# ============================================================================
 
-    Find out where scripts are actually downloading
+def show_main_menu(distro_name: str, distro_type: str):
+    """Display the main menu"""
+    print_banner()
+    print(colorize(f"Detected: {distro_name}", 'cyan'))
+    print()
+    print(colorize("=" * 60, 'white'))
+    print(colorize("  MAIN MENU", 'cyan'))
+    print(colorize("=" * 60, 'white'))
+    print()
+    print(colorize("1)", 'green') + " Quick Install Profiles")
+    print(colorize("2)", 'green') + " Browse & Select Categories")
+    print(colorize("3)", 'green') + " Install Prerequisites (fresh)")
+    print(colorize("4)", 'green') + " View Installed Tools")
+    print()
+    print(colorize("0)", 'red') + " Exit")
+    print()
 
-    Add C2 - Probably Havoc
-    Add PowerView (if not already included)
 
-    Double-check all tools
+def main_menu_loop(distro_name: str, distro_type: str, logger):
+    """Main menu interaction loop"""
+    while True:
+        show_main_menu(distro_name, distro_type)
+        choice = input(colorize("Select option: ", 'yellow')).strip()
 
-    Add section for Bug Bounty tools
-
-    Add section for API tools
-
-    Add option to download the recon.py automation script,
-    which uses this toolbelt
-    
-'''
-
-import subprocess, os, threading
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from termcolor import colored
-from tqdm import tqdm
-
-threads = []
-
-# Check if the user is running as root
-if os.geteuid() != 0:
-    print(colored("Please run as root", 'red'))
-    exit(1)
-
-'''
-subprocess.run(["pip", "install", "progress"])
-
-tools = ["tool1", "tool2", "tool3"]
-bar = Bar('Installing', max=len(tools))
-for tool in tools:
-    # Code to install the tool
-    bar.next()
-bar.finish()
-'''
-
-# Figlet
-os.system("figlet DjediToolbelt | lolcat")
-
-# Version
-print("v.0.3\n")
-
-# Message
-print(colored("[*] Installing Pentest & Bug Bounty Toolbox Suite", 'magenta'))
-
-#########################
-''' Aptitude Programs '''
-#########################
-
-def apt_tools():
-    subprocess.run(["sudo", "apt", "update"])
-    subprocess.run(["sudo", "apt", "install", "apt-fast"])
-
-    programs = ["nmap", "naabu", "nuclei", "burpsuite", "feroxbuster", "nikto", "masscan", "gobuster", "seclists", "sqlmap", "git"]
-
-    for program in programs:
-        if os.system(f"command -v {program}") == 0:
-            print(colored(f"[*] {program} is already installed", 'blue'))
+        if choice == '1':
+            profile_menu(distro_type, logger)
+        elif choice == '2':
+            category_menu(distro_type, logger)
+        elif choice == '3':
+            prompt_install_fresh()
+        elif choice == '4':
+            view_installed_tools()
+        elif choice == '0':
+            print()
+            print_success("Thank you for using Djedi Toolbelt!")
+            sys.exit(0)
         else:
-            print(colored(f"[+] Installing / updating {program}", 'green'))
-            os.system(f"sudo apt-fast install {program} -y")
-            if os.system(f"command -v {program}") != 0:
-                print(colored(f"[*] Error: Failed to install the program: {program}", 'red'))
-                exit(1)
-        os.system(f"sudo apt-fast install docker docker.io golang-go -y")
+            print_error("Invalid option. Please try again.")
+            input("\nPress Enter to continue...")
 
-##################
-''' /opt Tools '''
-##################
 
-def opt_tools():  
-    # Pimpmykali
-    os.chdir("/opt")
-    if not os.path.isdir("/opt/pimpmykali"):
-        print(colored("[+] Installing pimpmykali...", 'green'))
-        os.system("sudo git clone https://github.com/Dewalt-arch/pimpmykali")
-        os.chdir("pimpmykali")
-        print(colored("[+] Installing Golang...", 'green'))
-        os.system("sudo ./pimpmykali.sh --go")
-        print(colored("[+] Installing Impacket...", 'green'))
-        os.system("sudo ./pimpmykali.sh --impacket")
-        os.system("sudo ./pimpmykali.sh --upgrade")
-        os.chdir("/opt")
-    else:
-        print(colored("[*] pimpmykali is already installed", 'blue'))
+# ============================================================================
+# Level 2: Profile Menu
+# ============================================================================
 
-    # xnLinkFinder
-    if not os.path.isdir("/opt/xnLinkFinder"):
-        print(colored("[+] Installing xnLinkFinder...", 'green'))
-        os.system("git clone https://github.com/xnl-h4ck3r/xnLinkFinder.git")
-        os.chdir("xnLinkFinder")
-        os.system("sudo python setup.py install")
-        os.chdir("/opt")
-    else:
-        print(colored("[*] xnLinkFinder is already installed", 'blue'))
+def show_profile_menu():
+    """Display profile selection menu"""
+    print_section("QUICK INSTALL PROFILES")
 
-    # Knockpy
-    if not os.path.isdir("/opt/knock"):
-        print(colored("[+] Installing Knockpy...", 'green'))
-        os.system("sudo git clone https://github.com/guelfoweb/knock.git")
-        os.chdir("knock")
-        os.system("pip3 install -r requirements.txt")
-        os.chdir("/opt")
-    else:
-        print(colored("[*] Knockpy is already installed", 'blue'))
+    profiles = config.PROFILES
+    idx = 1
+    profile_map = {}
 
-    # Sublist3r
-    if not os.path.isdir("/opt/Sublist3r"):
-        print(colored("[+] Installing Sublist3r...", 'green'))
-        os.system("sudo git clone https://github.com/aboul3la/Sublist3r.git")
-        os.chdir("Sublist3r")
-        os.system("pip install -r requirements.txt")
-        os.chdir("/opt")
-    else:
-        print(colored("[*] Sublist3r is already installed", 'blue'))
+    for profile_id, profile_info in profiles.items():
+        print(f"{colorize(str(idx) + ')', 'green')} {colorize(profile_info['name'], 'white')}")
+        print(f"   {profile_info['description']}")
+        print()
+        profile_map[str(idx)] = profile_id
+        idx += 1
 
-    # Striker
-    if not os.path.isdir("/opt/Striker"):
-        print(colored("[+] Installing Striker...", 'green'))
-        os.system("sudo git clone https://github.com/s0md3v/Striker.git")
-        os.chdir("Striker")
-        os.system("pip install -r requirements.txt")
-        os.chdir("/opt")
-    else:
-        print(colored("[*] Striker is already installed", 'blue'))
+    print(colorize("0)", 'red') + " Back to Main Menu")
+    print()
 
-    # wafw00f
-    if not os.path.isdir("/opt/wafw00f"):
-        print(colored("[+] Installing wafw00f...", 'green'))
-        os.system("git clone https://github.com/EnableSecurity/wafw00f.git")
-        os.chdir("wafw00f")
-        os.system("pip3 install -r requirements.txt")
-        os.system("sudo python setup.py install")
-        os.chdir("/opt")
-    else:
-        print(colored("[*] wafw00f is already installed", 'blue'))
+    return profile_map
 
-    # Waymore
-    if not os.path.isdir("/opt/waymore"):
-        print(colored("[+] Installing waymore...", 'green'))
-        os.system("git clone https://github.com/xnl-h4ck3r/waymore.git")
-        os.chdir("waymore")
-        os.system("pip3 install -r requirements.txt")
-        os.system("sudo python setup.py install")
-        os.chdir("/opt")
-    else:
-        print(colored("[*] waymore is already installed", 'blue'))
 
-    # XSStrike
-    if not os.path.isdir("/opt/XSStrike"):
-        print(colored("[+] Installing XSStrike...", 'green'))
-        os.system("git clone https://github.com/s0md3v/XSStrike.git")
-        os.chdir("XSStrike")
-        os.system("pip3 install -r requirements.txt")
-        os.system("sudo python setup.py install")
-        os.chdir("/opt")
-    else:
-        print(colored("[*] XSStrike is already installed", 'blue'))
+def install_profile(profile_id: str, distro_type: str, logger):
+    """Install tools from a profile"""
+    profile = config.get_profile(profile_id)
+    if not profile:
+        print_error(f"Profile not found: {profile_id}")
+        return
 
-####################
-''' Python Tools '''
-####################
+    print_section(f"Installing Profile: {profile['name']}")
+    print_info(profile['description'])
+    print()
 
-def python_tools():
-    print(colored("[+] Installing / Updating Python Tools...", 'green'))
-    subprocess.run(["pip3", "install", "--upgrade", "wfuzz"])
-    subprocess.run(["pip3", "install", "arjun"])
-    subprocess.run(["pip3", "install", "scrapy"])
-    subprocess.run(["pip3", "install", "tld"])
-    subprocess.run(["pip3", "install", "requests"])
-    subprocess.run(["pip3", "install", "fuzzywuzzy"])
+    categories = profile['categories']
 
-################
-''' Go Tools '''
-################
+    # APT Tools
+    if 'apt' in categories:
+        if categories['apt'] == 'all':
+            installer.install_apt_tools(distro_type=distro_type, logger=logger)
+        elif isinstance(categories['apt'], list):
+            installer.install_apt_tools(tools=categories['apt'], distro_type=distro_type, logger=logger)
 
-def go_tools():
-    print(colored("[+] Installing / Updating Go Tools...", 'green'))
-    commands = [
-        ["go", "install", "-v", "github.com/projectdiscovery/naabu/v2/cmd/naabu@latest"],
-        ["go", "install", "-v", "github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest"],
-        ["go", "install", "-v", "github.com/projectdiscovery/katana/cmd/katana@latest"],
-        ["go", "install", "-v", "github.com/projectdiscovery/httpx/cmd/httpx@latest"],
-        ["go", "install", "-v", "github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest"],
-        ["go", "install", "-v", "github.com/OWASP/Amass/v3/...@master"],
-        ["go", "install", "-v", "github.com/tomnomnom/assetfinder@latest"],
-        ["go", "install", "-v", "github.com/tomnomnom/httprobe@latest"],
-        ["go", "install", "-v", "github.com/sensepost/gowitness@latest"],
-        ["go", "install", "-v", "github.com/haccer/subjack@latest"],
-        ["go", "install", "-v", "github.com/hakluke/hakrawler@latest"],
-        ["go", "install", "-v", "github.com/rverton/webanalyze/cmd/webanalyze@latest"],
-    ]
+    # Go Tools
+    if 'go' in categories:
+        if categories['go'] == 'all':
+            installer.install_go_tools(logger=logger)
+        elif isinstance(categories['go'], list):
+            installer.install_go_tools(tools=categories['go'], logger=logger)
 
-    with ThreadPoolExecutor() as executor:
-        results = [executor.submit(subprocess.run, cmd) for cmd in commands]
-        for f in as_completed(results):
-            print(colored(f.result(), 'green'))
+    # /opt Tools
+    if 'opt' in categories:
+        if categories['opt'] == 'all':
+            installer.install_opt_tools(distro_type=distro_type, logger=logger)
+        elif isinstance(categories['opt'], list):
+            installer.install_opt_tools(tools=categories['opt'], distro_type=distro_type, logger=logger)
 
-####################
-''' Docker Tools '''
-####################
+    # Python Tools
+    if 'python' in categories:
+        if categories['python'] == 'all':
+            installer.install_python_tools(logger=logger)
+        elif isinstance(categories['python'], list):
+            installer.install_python_tools(tools=categories['python'], logger=logger)
 
-def docker_tools():
-    # RustScan
-    print(colored("[+] Installing / Updating RustScan...", 'green'))
-    os.system("docker pull rustscan/rustscan:2.0.1")
-    if os.path.isfile("~/.zshrc"):
-        print(colored("[+] adding rustscan alias to ~/.zshrc", 'green'))
-        with open("~/.zshrc", "a") as f:
-            f.write("alias rustscan='docker run -it --rm --name rustscan rustscan/rustscan:2.0.1'")
-    elif os.path.isfile("~/.bashrc"):
-        print(colored("[+] adding rustscan alias to ~/.bashrc", 'green'))
-        with open("~/.bashrc", "a") as f:
-            f.write("alias rustscan='docker run -it --rm --name rustscan rustscan/rustscan:2.0.1'")
+    # Docker Tools
+    if 'docker' in categories:
+        if categories['docker'] == 'all':
+            installer.install_docker_tools(logger=logger)
+        elif isinstance(categories['docker'], list):
+            installer.install_docker_tools(tools=categories['docker'], logger=logger)
 
-###############
-''' Scripts '''
-###############
+    # Scripts
+    if 'scripts' in categories and categories['scripts']:
+        installer.download_useful_scripts(logger=logger)
 
-def useful_scripts():
-    def scripts_dir():
-        if not os.path.isdir(os.path.expanduser("~/scripts")):
-            # os.chdir(["cd", os.path.expanduser("~")])
-            os.chdir(os.path.expanduser("~"))
-            os.makedirs(os.path.expanduser("~/scripts"), exist_ok=True)
-            os.chdir(os.path.expanduser("~/scripts"))
-            subprocess.run(["echo", "created", "scripts", "and", "moved", "into", "it"])
+    print()
+    print_success(f"Profile '{profile['name']}' installation complete!")
+    input("\nPress Enter to continue...")
+
+
+def profile_menu(distro_type: str, logger):
+    """Profile selection menu"""
+    while True:
+        profile_map = show_profile_menu()
+        choice = input(colorize("Select profile: ", 'yellow')).strip()
+
+        if choice == '0':
+            return
+        elif choice in profile_map:
+            install_profile(profile_map[choice], distro_type, logger)
         else:
-            os.chdir(os.path.expanduser("~/scripts"))
-            subprocess.run(["echo", "directory", "/scripts", "already", "exists,", "moving", "into", "it"])
+            print_error("Invalid option. Please try again.")
+            input("\nPress Enter to continue...")
 
-    scripts_dir()
 
-    scripts = ["https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh", "https://github.com/411Hall/JAWS/raw/master/jaws-enum.ps1", "https://github.com/rebootuser/LinEnum/raw/master/LinEnum.sh", "https://github.com/carlospolop/PEASS-ng/releases/download/20230122/winPEASany_ofs.exe", "https://raw.githubusercontent.com/pentestmonkey/php-reverse-shell/master/php-reverse-shell.php", "https://raw.githubusercontent.com/mzet-/linux-exploit-suggester/master/linux-exploit-suggester.sh", "https://github.com/PowerShellMafia/PowerSploit/raw/master/Recon/PowerView.ps1"]
+# ============================================================================
+# Level 2: Category Menu
+# ============================================================================
 
-    script_threads = []
+def show_category_menu():
+    """Display category selection menu"""
+    print_section("BROWSE & SELECT CATEGORIES")
 
-    def download_script_thread(script):
-        subprocess.run(f"wget {script}", shell=True)
+    idx = 1
+    category_map = {}
 
-    def download_script(scripts):
-        for script in tqdm(scripts):
-            print(colored(f"[+] Grabbing {script}", 'green'))
-            t = threading.Thread(target=download_script_thread, args=(script,))
-            script_threads.append(t)
-            t.start()
+    for cat_id, cat_info in config.CATEGORIES.items():
+        icon = cat_info.get('icon', '•')
+        name = cat_info['name']
+        desc = cat_info['description']
 
-        for t in script_threads:
-            t.join()
+        print(f"{colorize(str(idx) + ')', 'green')} {icon} {colorize(name, 'white')}")
+        print(f"   {desc}")
+        print()
 
-        print(colored("[*] All scripts downloaded", 'green'))
+        category_map[str(idx)] = cat_id
+        idx += 1
 
-    download_script(scripts)
+    print(colorize("0)", 'red') + " Back to Main Menu")
+    print()
 
-try:
-    apt_tools()
-    opt_tools()
-    go_tools()
-    docker_tools()
-    useful_scripts()
-except KeyboardInterrupt:
-    print(colored(f"[*] Exiting: KeyboardInterrupt", 'red'))
+    return category_map
 
-print(colored("[*] Installation Complete", 'magenta'))
-print(colored("[*] Reboot Recommended", 'magenta'))
-print(colored("[*] You are now Equipped!", 'green'))
+
+def category_menu(distro_type: str, logger):
+    """Category selection menu"""
+    while True:
+        category_map = show_category_menu()
+        choice = input(colorize("Select category: ", 'yellow')).strip()
+
+        if choice == '0':
+            return
+        elif choice in category_map:
+            category_id = category_map[choice]
+            tool_selection_menu(category_id, distro_type, logger)
+        else:
+            print_error("Invalid option. Please try again.")
+            input("\nPress Enter to continue...")
+
+
+# ============================================================================
+# Level 3: Tool Selection Menu
+# ============================================================================
+
+def show_tool_selection_menu(category_id: str, distro_type: str):
+    """Display tool selection menu for a category"""
+    cat_info = config.CATEGORIES[category_id]
+    print_section(f"{cat_info['icon']} {cat_info['name']}")
+    print_info(cat_info['description'])
+    print()
+
+    print(colorize("1)", 'green') + " Install All Tools in Category")
+    print(colorize("2)", 'green') + " Select Specific Tools (Coming Soon)")
+    print()
+    print(colorize("0)", 'red') + " Back")
+    print()
+
+
+def tool_selection_menu(category_id: str, distro_type: str, logger):
+    """Tool selection menu for a category"""
+    while True:
+        show_tool_selection_menu(category_id, distro_type)
+        choice = input(colorize("Select option: ", 'yellow')).strip()
+
+        if choice == '0':
+            return
+        elif choice == '1':
+            install_category_all(category_id, distro_type, logger)
+        elif choice == '2':
+            print_warning("Individual tool selection coming in next update!")
+            input("\nPress Enter to continue...")
+        else:
+            print_error("Invalid option. Please try again.")
+            input("\nPress Enter to continue...")
+
+
+def install_category_all(category_id: str, distro_type: str, logger):
+    """Install all tools in a category"""
+    cat_info = config.CATEGORIES[category_id]
+    print_section(f"Installing All {cat_info['name']}")
+
+    success = False
+
+    if category_id == 'apt':
+        success = installer.install_apt_tools(distro_type=distro_type, logger=logger)
+    elif category_id == 'go':
+        success = installer.install_go_tools(logger=logger)
+    elif category_id == 'opt':
+        success = installer.install_opt_tools(distro_type=distro_type, logger=logger)
+    elif category_id == 'python':
+        success = installer.install_python_tools(logger=logger)
+    elif category_id == 'docker':
+        success = installer.install_docker_tools(logger=logger)
+    elif category_id == 'scripts':
+        success = installer.download_useful_scripts(logger=logger)
+
+    print()
+    if success:
+        print_success(f"{cat_info['name']} installation complete!")
+    else:
+        print_warning(f"{cat_info['name']} installation completed with some errors")
+
+    input("\nPress Enter to continue...")
+
+
+# ============================================================================
+# View Installed Tools
+# ============================================================================
+
+def view_installed_tools():
+    """Display currently installed tools"""
+    print_section("INSTALLED TOOLS")
+
+    # Check APT tools
+    print(colorize("📦 APT Tools:", 'cyan'))
+    apt_tools = config.get_apt_tools_for_distro('kali')  # Use max list
+    for tool in apt_tools:
+        check_name = tool.replace('.io', '').replace('-', '')
+        if check_command_exists(check_name):
+            print(colorize(f"  ✓ {tool}", 'green'))
+
+    print()
+
+    # Check Go tools
+    print(colorize("🔷 Go Tools:", 'cyan'))
+    for tool_name in config.GO_TOOLS.keys():
+        if check_command_exists(tool_name):
+            print(colorize(f"  ✓ {tool_name}", 'green'))
+
+    print()
+
+    # Check Docker tools
+    print(colorize("🐳 Docker Tools:", 'cyan'))
+    for tool_name in config.DOCKER_TOOLS.keys():
+        if check_command_exists(tool_name):
+            print(colorize(f"  ✓ {tool_name}", 'green'))
+
+    print()
+    input("Press Enter to continue...")
+
+
+# ============================================================================
+# Main Entry Point
+# ============================================================================
+
+def main():
+    """Main entry point"""
+    # System checks
+    check_root_discourage()
+
+    if not check_apt():
+        print_error("APT package manager not found!")
+        print_error("This tool currently only supports Debian-based systems.")
+        sys.exit(1)
+
+    if not check_sudo():
+        print_error("sudo not found! Please install sudo first.")
+        sys.exit(1)
+
+    # Setup logging
+    logger = setup_logging()
+
+    # Detect distribution
+    distro_name, distro_type = detect_distro()
+    logger.info(f"Detected distribution: {distro_name} (type: {distro_type})")
+
+    # Check for fresh (optional)
+    prompt_install_fresh()
+
+    # Enter main menu loop
+    try:
+        main_menu_loop(distro_name, distro_type, logger)
+    except KeyboardInterrupt:
+        print()
+        print()
+        print_warning("Installation interrupted by user")
+        logger.info("Installation interrupted by user (KeyboardInterrupt)")
+        sys.exit(0)
+    except Exception as e:
+        print()
+        print_error(f"Unexpected error: {e}")
+        logger.error(f"Unexpected error: {e}", exc_info=True)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

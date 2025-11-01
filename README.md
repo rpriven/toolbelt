@@ -1,108 +1,272 @@
-# Djedi Toolbelt
+# Djedi Toolbelt v2.0
 
-This is intended for new Kali installs to install a large amount of useful tools not included with Kali in a short amount of time.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python: 3.6+](https://img.shields.io/badge/Python-3.6+-blue.svg)](https://www.python.org/)
 
-It is recommended if this is a new Kali VM to run PimpMyKali and run the 'N' option first.  Dewalt has done an excellent job on this and keeps getting better every time I use it.  You can check it out here:  https://github.com/Dewalt-arch/pimpmykali  It is also integrated into toolbelt but I always like running this first anyway.
+**Comprehensive security tool installer with interactive menus, pre-built profiles, and distro-specific support.**
 
-## Updates
+---
 
-Python version got some important tweaks to speed things up and smooth out some issues.  Actually the python code has not changed yet, it is just now actually working as intended since I fixed the apt-fast installation.  It now takes only 1 to 3 minutes compared to 10 to 15 minutes or so using the bash version.  Still may have some tweaks to work through but it seems to be working well in the several tests I've done.  I will be putting this into a script shortly but here is instructions.
+## 🚀 What's New in v2.0
 
-### toolbelt.py Installation
+- ✅ **Interactive 3-Level Menu System** - Browse categories, select tools, install profiles
+- ✅ **Pre-Built Profiles** - Bug Bounty, CTF, Web App, Network, Full Pentest
+- ✅ **Distro Detection** - Kali, Debian, Ubuntu support with appropriate tool sets
+- ✅ **No Root Requirement** - Runs as user, uses sudo only when needed
+- ✅ **Comprehensive Logging** - Dual output (console + file)
+- ✅ **Fresh Integration** - Detects and recommends modern CLI tools
+- ✅ **Modular Architecture** - Clean, maintainable Python code
 
-First we must install apt-fast
-```bash
-sudo apt install aria2 -y
-sudo /bin/bash -c "$(curl -sL https://git.io/vokNn)"
-cp apt-fast /usr/local/sbin/
-sudo chmod +x /usr/local/sbin/apt-fast
-cp apt-fast.conf /etc
-```
+---
 
-Then we should be good to go:
-```bash
-curl https://raw.githubusercontent.com/rpriven/toolbelt/main/toolbelt.py | sudo python3
-```
-
-Still a couple minor errors and I want to put this into a script soon.
-
-*However, please note that there is an issue with the go tools and the useful scripts being downloaded in the /root directory instead of /home/kali because the script must be run as root.  Working on a fix for this*
-
-## Overview
-
-This script installs / updates some of the important key tools for Pentesters and Bug Bounty Hunters.  You probably
-have most of these tools installed already (as it was designed for use with Kali/Debian/Ubuntu), but it is useful for 
-me to have it all together in one script so I don't have to take the time to search for everything when I make a 
-new VM or have to go through and install or update everything manually.
-
-This is a rough version as it is my first attempt at building some sort of a recon framework (if you can call
-it that) for Pentesting, CTFs as well as Bug Bounties.  There will be an accompanying automation script as well.
-
-**This installs a good amount of tools, if you are looking for something light, you may want to remove what you do not want or need before running the script.**
-*It is also a good idea to read through unfamiliar code before executing it anyway.*
-
-## (Old) Installation
-
-Simply download the script and run it:
+## 📋 Quick Start
 
 ```bash
-wget https://raw.githubusercontent.com/rpriven/toolbelt/main/toolbelt.sh
-chmod +x toolbelt.sh
-sudo ./toolbelt.sh
+# Clone the repository
+git clone https://github.com/rpriven/toolbelt.git
+cd toolbelt
+
+# Run toolbelt (no sudo needed!)
+python3 toolbelt.py
 ```
 
-Easier:
+**Important:** Do NOT run as root/sudo. The script will use sudo for specific commands that require it.
+
+---
+
+## 🎯 Features
+
+### Interactive Menu System
+
+**Level 1 - Main Menu:**
+- Quick Install Profiles
+- Browse & Select Categories
+- Install Prerequisites (fresh)
+- View Installed Tools
+
+**Level 2 - Categories:**
+- 📦 APT Tools - Package manager tools
+- 🔷 Go Tools - Security tools written in Go
+- 🔧 /opt Tools - Tools cloned to /opt
+- 🐍 Python Tools - Tools via pip3
+- 🐳 Docker Tools - Containerized tools
+- 📜 Useful Scripts - PEAS, PowerView, etc.
+
+**Level 3 - Tool Selection:**
+- Install all tools in category
+- Individual tool selection (coming soon)
+
+### Pre-Built Profiles
+
+**Bug Bounty Hunter** - Web app testing and reconnaissance
+- nmap, masscan, nikto, sqlmap, burpsuite
+- nuclei, httpx, subfinder, katana, amass
+- Sublist3r, wafw00f, XSStrike
+- wfuzz, arjun, scripts collection
+
+**CTF Player** - Capture The Flag tools
+- nmap, burpsuite, sqlmap, wireshark
+- Python tools: wfuzz, scrapy, requests
+- Scripts collection
+
+**Web Application Testing** - Web security focus
+- nmap, nikto, sqlmap, burpsuite
+- nuclei, httpx, katana
+- wafw00f, XSStrike, Striker
+- wfuzz, arjun, scrapy
+
+**Network Pentesting** - Network recon and scanning
+- nmap, masscan, wireshark
+- naabu, amass, assetfinder, httprobe
+- RustScan (Docker)
+
+**Full Pentesting Arsenal** - Everything (5GB+)
+- All APT tools
+- All Go tools
+- All /opt tools
+- All Python tools
+- All Docker tools
+- All scripts
+
+---
+
+## 🛠️ Tool Categories
+
+### APT Tools (via package manager)
+
+**Kali Linux:**
+nmap, masscan, naabu, nuclei, burpsuite, feroxbuster, nikto, gobuster, seclists, sqlmap, git, docker.io, docker-compose, golang-go, wireshark
+
+**Debian/Ubuntu:**
+nmap, masscan, nikto, sqlmap, git, docker.io, docker-compose, golang-go, wireshark, burpsuite
+
+### Go Tools (via go install)
+
+naabu, nuclei, katana, httpx, subfinder, amass, assetfinder, httprobe, gowitness, subjack, hakrawler, webanalyze
+
+*All ProjectDiscovery tools included*
+
+### /opt Tools (cloned to /opt)
+
+- **pimpmykali** (Kali only) - Golang + Impacket setup
+- **xnLinkFinder** - Link finder for bug bounty
+- **Knockpy** - Subdomain enumeration
+- **Sublist3r** - Subdomain discovery
+- **Striker** - Web application scanner
+- **wafw00f** - WAF detection
+- **waymore** - Web archive scraper
+- **XSStrike** - XSS detection suite
+
+### Python Tools (via pip3)
+
+wfuzz, arjun, scrapy, tld, requests, fuzzywuzzy
+
+### Docker Tools
+
+**RustScan** - Fast port scanner
+- Includes alias setup for shell
+
+### Useful Scripts (downloaded to ~/scripts)
+
+- **linpeas.sh** - Linux privilege escalation
+- **jaws-enum.ps1** - Windows enumeration
+- **LinEnum.sh** - Linux enumeration
+- **winPEASany_ofs.exe** - Windows privilege escalation
+- **php-reverse-shell.php** - PHP reverse shell
+- **linux-exploit-suggester.sh** - Linux exploit suggester
+- **PowerView.ps1** - PowerShell AD enumeration
+
+---
+
+## 🔧 Requirements
+
+- **OS:** Kali Linux, Debian, or Ubuntu
+- **Python:** 3.6+
+- **Package Manager:** apt
+- **Privileges:** sudo access (script runs as user, not root)
+
+---
+
+## 📖 Usage Examples
+
+### Install a Profile
 
 ```bash
-curl https://raw.githubusercontent.com/rpriven/toolbelt/main/toolbelt.sh | sudo sh
+python3 toolbelt.py
+# Select: 1) Quick Install Profiles
+# Choose: Bug Bounty Hunter
 ```
 
-## What is on the Toolbelt:
+### Browse Categories
 
-- Nmap
-- naabu
-- Nuclei
-- Burp Suite
-- feroxbuster
-- nikto
-- masscan
-- Gobuster
-- SecLists
-- SQLmap
-- git
-- docker
-- docker.io
-- pimpmykali
-- Golang
-- Impacket
-- knockpy
-- Sublist3r
-- Striker
-- waymore
-- wfuzz
-- scrapy
-- amass
-- assetfinder
-- httprobe
-- gowitness
-- subjack
-- hakrawler
-- webanalyze
-- RustScan
+```bash
+python3 toolbelt.py
+# Select: 2) Browse & Select Categories
+# Choose category (e.g., Go Tools)
+# Install all or select specific tools
+```
 
-## To Do List
+### Check Installed Tools
 
-### Add basic syntax to tools
+```bash
+python3 toolbelt.py
+# Select: 4) View Installed Tools
+```
 
-### Add checks for the Go programs if they are the @latest version so it doesn't re-download them every time
-the script is run, only when it is either not found or not up to date
+---
 
-### Add to the toolbelt:
+## 🔗 Integration with Fresh
 
-- dnmasscan
-- interlace
-- static-flow
-- sn1per
-- more...
+Toolbelt integrates with [fresh](https://github.com/rpriven/fresh) for modern CLI productivity tools.
 
-### Add colors
+**Recommended Setup:**
+
+1. **Install fresh first** - Modern CLI foundation (fzf, ripgrep, bat, etc.)
+2. **Install toolbelt** - Security tools
+3. **Install tmux-recon** (optional) - Pentesting automation
+
+Fresh provides essential CLI tools that enhance the security workflow. Toolbelt will detect if fresh is installed and prompt you to install it if missing.
+
+---
+
+## 📂 Architecture
+
+```
+toolbelt/
+├── toolbelt.py      # Main entry point with interactive menus
+├── utils.py         # Distro detection, logging, helpers
+├── config.py        # Tool definitions, profiles, categories
+├── installer.py     # Installation logic for each category
+├── toolbelt_old.py  # Original v1.0 (reference)
+└── toolbelt.sh.old  # Legacy bash version (archived)
+```
+
+**Modular Design:**
+- `utils.py` - System checks, logging setup, helper functions
+- `config.py` - Tool lists, profile definitions, category metadata
+- `installer.py` - Installation functions for each tool category
+- `toolbelt.py` - Interactive menu system and main flow
+
+---
+
+## 🔐 Security Notes
+
+- **No Root Execution**: Script runs as regular user, uses sudo only for specific commands
+- **Logging**: All operations logged to `~/toolbelt-install.log`
+- **Smart Detection**: Skips already-installed tools
+- **Error Handling**: Comprehensive error checking and reporting
+
+---
+
+## 🐛 Known Issues
+
+- Individual tool selection menu (Level 3) coming in next update
+- Custom profile saving/loading planned for future release
+
+---
+
+## 🤝 Contributing
+
+Contributions welcome! Please feel free to submit pull requests or open issues for:
+- Additional tool suggestions
+- New profiles
+- Platform support improvements
+- Bug fixes
+
+---
+
+## 📝 Version History
+
+**v2.0.0** (2025-10-31)
+- Complete rewrite with interactive menu system
+- Pre-built profile support
+- Distro detection (Kali, Debian, Ubuntu)
+- Removed root requirement
+- Added comprehensive logging
+- Fresh integration
+- Modular architecture
+
+**v1.0** (2023)
+- Original automated installer
+- Bash and Python versions
+- Root required
+- No menu system
+
+---
+
+## 📜 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- Built for the pentesting and bug bounty community
+- Integrates tools from ProjectDiscovery, OWASP, and many open source developers
+- Inspired by the need for quick, consistent tool setup across environments
+- Part of the Djedi security tooling ecosystem
+
+---
+
+**Djedi Toolbelt** - Because every pentester deserves a well-equipped toolbelt. 🔧
