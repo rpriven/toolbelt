@@ -188,9 +188,12 @@ def gum_multi_select(
         return []
 
     try:
+        # gum needs direct terminal access - don't redirect stdin/stderr
         result = subprocess.run(
             ['gum', 'choose', '--no-limit', '--header', header] + options,
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=None,  # Let stderr go to terminal
+            stdin=None,   # Let gum access the terminal directly
             text=True,
             timeout=300  # 5 minute timeout
         )
