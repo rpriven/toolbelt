@@ -350,7 +350,7 @@ def install_category_selected(category_id: str, distro_type: str, logger):
     elif category_id == 'opt':
         tools_list = list(config.get_opt_tools_for_distro(distro_type).keys())
     elif category_id == 'python':
-        tools_list = list(config.PYTHON_TOOLS.keys())
+        tools_list = config.PYTHON_TOOLS  # Already a list, not a dict
     elif category_id == 'docker':
         tools_list = list(config.DOCKER_TOOLS.keys())
     elif category_id == 'scripts':
