@@ -527,15 +527,29 @@ def check_tool_versions(logger):
                 text=True,
                 timeout=5
             )
-            installed_version = result.stdout.strip() or result.stderr.strip()
 
-            # For now, mark as "installed" - actual version comparison would require
-            # querying go.dev or GitHub API
+            # Try to extract just the version number, not the full banner
+            version_output = result.stdout.strip() or result.stderr.strip()
+
+            # Many tools print version on first line - extract it
+            if version_output:
+                first_line = version_output.split('\n')[0]
+                # Look for version patterns like "v1.2.3" or "1.2.3"
+                import re
+                version_match = re.search(r'v?\d+\.\d+\.\d+', first_line)
+                if version_match:
+                    installed_version = version_match.group(0)
+                else:
+                    # Fallback to first line if no version pattern found
+                    installed_version = first_line[:50]
+            else:
+                installed_version = "installed"
+
             up_to_date.append((tool_name, installed_version))
 
         except Exception as e:
             logger.debug(f"Could not get version for {tool_name}: {e}")
-            up_to_date.append((tool_name, "unknown version"))
+            up_to_date.append((tool_name, "installed"))
 
     # Display results
     if up_to_date:
@@ -610,6 +624,16 @@ def update_all_go_tools(logger):
     print_info(f"Total tools: {len(config.GO_TOOLS)}")
     print()
 
+    # List all tools that will be updated
+    print(colorize("Tools to update:", 'cyan'))
+    for tool_name in config.GO_TOOLS.keys():
+        # Check if installed
+        if check_command_exists(tool_name):
+            print(colorize(f"  ✓ {tool_name}", 'green'))
+        else:
+            print(colorize(f"  ○ {tool_name} (not installed, will skip)", 'yellow'))
+    print()
+
     response = input(colorize("Continue? [y/N]: ", 'yellow')).strip().lower()
     if response != 'y':
         print_warning("Update cancelled")
@@ -619,8 +643,14 @@ def update_all_go_tools(logger):
     print()
     success_count = 0
     fail_count = 0
+    skipped_count = 0
 
     for tool_name, module_path in config.GO_TOOLS.items():
+        # Skip if not installed
+        if not check_command_exists(tool_name):
+            skipped_count += 1
+            continue
+
         print(f"Updating {tool_name}...", end=' ')
         try:
             result = subprocess.run(
@@ -645,7 +675,7 @@ def update_all_go_tools(logger):
             logger.error(f"Error updating {tool_name}: {e}")
 
     print()
-    print_info(f"Updated: {success_count} | Failed: {fail_count}")
+    print_info(f"Updated: {success_count} | Failed: {fail_count} | Skipped: {skipped_count}")
     print()
     input("Press Enter to continue...")
 
