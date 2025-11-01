@@ -7,6 +7,7 @@ Interactive package manager for pentesting and security research tools
 import sys
 import os
 import subprocess
+from pathlib import Path
 from typing import Optional, List, Dict
 
 # Import local modules
@@ -81,6 +82,7 @@ def show_main_menu(distro_name: str, distro_type: str):
     print(colorize("3)", 'green') + " Install Prerequisites (fresh)")
     print(colorize("4)", 'green') + " View Installed Tools")
     print(colorize("5)", 'green') + " Check for Tool Updates")
+    print(colorize("6)", 'green') + " Manage Wordlists")
     print()
     print(colorize("0)", 'red') + " Exit")
     print()
@@ -102,6 +104,8 @@ def main_menu_loop(distro_name: str, distro_type: str, logger):
             view_installed_tools()
         elif choice == '5':
             update_tools_menu(logger)
+        elif choice == '6':
+            wordlist_menu(logger)
         elif choice == '0':
             print()
             print_success("Thank you for using Djedi Toolbelt!")
@@ -761,6 +765,217 @@ def update_selected_tools(logger):
 
     print()
     print_info(f"Updated: {success_count} | Failed: {fail_count}")
+    print()
+    input("Press Enter to continue...")
+
+
+# ============================================================================
+# Wordlist Management
+# ============================================================================
+
+def wordlist_menu(logger):
+    """Wordlist management menu"""
+    while True:
+        print_section("📚 WORDLIST MANAGEMENT")
+
+        # Check if SecLists is installed
+        seclists_path = os.path.expanduser("~/wordlists/SecLists")
+        seclists_installed = os.path.isdir(seclists_path)
+
+        print(colorize("1)", 'green') + " Install SecLists")
+        if seclists_installed:
+            print(colorize("   ✓ Already installed at ~/wordlists/SecLists", 'green'))
+        else:
+            print("   Comprehensive wordlist collection")
+        print()
+
+        print(colorize("2)", 'green') + " View Installed Wordlists")
+        print("   Browse wordlist directory structure")
+        print()
+
+        print(colorize("3)", 'green') + " Update SecLists")
+        if seclists_installed:
+            print("   Pull latest updates from GitHub")
+        else:
+            print(colorize("   (Requires SecLists to be installed first)", 'yellow'))
+        print()
+
+        print(colorize("0)", 'red') + " Back to Main Menu")
+        print()
+
+        choice = input(colorize("Select option: ", 'yellow')).strip()
+
+        if choice == '0':
+            return
+        elif choice == '1':
+            install_seclists(logger)
+        elif choice == '2':
+            view_wordlists(logger)
+        elif choice == '3':
+            update_seclists(logger, seclists_installed)
+        else:
+            print_error("Invalid option. Please try again.")
+            input("\nPress Enter to continue...")
+
+
+def install_seclists(logger):
+    """Install SecLists wordlist collection"""
+    print_section("📥 Installing SecLists")
+
+    wordlists_dir = os.path.expanduser("~/wordlists")
+    seclists_path = os.path.join(wordlists_dir, "SecLists")
+
+    # Check if already installed
+    if os.path.isdir(seclists_path):
+        print_warning("SecLists is already installed!")
+        print_info(f"Location: {seclists_path}")
+        print()
+        response = input(colorize("Reinstall? This will delete and re-clone. [y/N]: ", 'yellow')).strip().lower()
+        if response != 'y':
+            print_warning("Installation cancelled")
+            input("\nPress Enter to continue...")
+            return
+
+        # Remove existing
+        print_info("Removing existing SecLists...")
+        try:
+            subprocess.run(['rm', '-rf', seclists_path], check=True)
+        except Exception as e:
+            print_error(f"Failed to remove existing SecLists: {e}")
+            logger.error(f"Failed to remove SecLists: {e}")
+            input("\nPress Enter to continue...")
+            return
+
+    # Create wordlists directory
+    if not os.path.isdir(wordlists_dir):
+        print_info(f"Creating {wordlists_dir}...")
+        os.makedirs(wordlists_dir, exist_ok=True)
+
+    # Clone SecLists
+    print_info("Cloning SecLists from GitHub...")
+    print_warning("This is a large repository (~500MB), it may take a few minutes...")
+    print()
+
+    try:
+        result = subprocess.run(
+            ['git', 'clone', '--depth', '1', 'https://github.com/danielmiessler/SecLists.git', seclists_path],
+            check=False
+        )
+
+        if result.returncode == 0:
+            print()
+            print_success("SecLists installed successfully!")
+            print_info(f"Location: {seclists_path}")
+            print()
+            print_info("Popular wordlists:")
+            print(f"  • Passwords: {seclists_path}/Passwords/")
+            print(f"  • Usernames: {seclists_path}/Usernames/")
+            print(f"  • Subdomains: {seclists_path}/Discovery/DNS/")
+            print(f"  • Directories: {seclists_path}/Discovery/Web-Content/")
+            print(f"  • Fuzzing: {seclists_path}/Fuzzing/")
+            logger.info("SecLists installed successfully")
+        else:
+            print_error("Failed to clone SecLists repository")
+            logger.error("SecLists installation failed")
+
+    except Exception as e:
+        print_error(f"Installation failed: {e}")
+        logger.error(f"SecLists installation error: {e}", exc_info=True)
+
+    print()
+    input("Press Enter to continue...")
+
+
+def view_wordlists(logger):
+    """View installed wordlist directory structure"""
+    print_section("📂 Installed Wordlists")
+
+    wordlists_dir = os.path.expanduser("~/wordlists")
+
+    if not os.path.isdir(wordlists_dir):
+        print_warning("No wordlists directory found")
+        print_info(f"Expected location: {wordlists_dir}")
+        print()
+        input("Press Enter to continue...")
+        return
+
+    seclists_path = os.path.join(wordlists_dir, "SecLists")
+
+    if not os.path.isdir(seclists_path):
+        print_warning("SecLists not found")
+        print_info("Use option 1 to install SecLists")
+        print()
+        input("Press Enter to continue...")
+        return
+
+    # Show SecLists structure
+    print(colorize(f"SecLists Location: {seclists_path}", 'cyan'))
+    print()
+
+    categories = [
+        "Discovery",
+        "Fuzzing",
+        "IOCs",
+        "Miscellaneous",
+        "Passwords",
+        "Pattern-Matching",
+        "Payloads",
+        "Usernames",
+        "Web-Shells"
+    ]
+
+    for category in categories:
+        category_path = os.path.join(seclists_path, category)
+        if os.path.isdir(category_path):
+            # Count files in category
+            try:
+                file_count = sum(1 for _ in Path(category_path).rglob('*') if _.is_file())
+                print(colorize(f"  📁 {category}/", 'green') + f" ({file_count} files)")
+            except Exception:
+                print(colorize(f"  📁 {category}/", 'green'))
+
+    print()
+    print_info(f"Full path: {seclists_path}")
+    print()
+    input("Press Enter to continue...")
+
+
+def update_seclists(logger, seclists_installed: bool):
+    """Update SecLists from GitHub"""
+    print_section("🔄 Updating SecLists")
+
+    if not seclists_installed:
+        print_warning("SecLists is not installed!")
+        print_info("Use option 1 to install SecLists first")
+        print()
+        input("Press Enter to continue...")
+        return
+
+    seclists_path = os.path.expanduser("~/wordlists/SecLists")
+
+    print_info("Pulling latest updates from GitHub...")
+    print()
+
+    try:
+        # Run git pull
+        result = subprocess.run(
+            ['git', '-C', seclists_path, 'pull'],
+            check=False
+        )
+
+        print()
+        if result.returncode == 0:
+            print_success("SecLists updated successfully!")
+        else:
+            print_warning("Update completed with issues")
+            print_info("Try reinstalling if problems persist (option 1)")
+
+        logger.info(f"SecLists update completed with exit code {result.returncode}")
+
+    except Exception as e:
+        print_error(f"Update failed: {e}")
+        logger.error(f"SecLists update error: {e}", exc_info=True)
+
     print()
     input("Press Enter to continue...")
 

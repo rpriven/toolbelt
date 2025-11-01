@@ -312,10 +312,10 @@ def download_with_progress(url: str, output: str):
 
 ## Implementation Priority
 
-**v2.1 (Next Release):**
+**v2.1 (COMPLETE):**
 1. Individual Tool Selection (gum multi-select) ✅ **COMPLETED**
 2. Tool Update Detection ✅ **COMPLETED**
-3. Wordlist Management 🔜
+3. Wordlist Management ✅ **COMPLETED**
 
 **v2.2:**
 4. Resource Monitoring

@@ -44,6 +44,7 @@ python3 toolbelt.py
 - Install Prerequisites (fresh)
 - View Installed Tools
 - Check for Tool Updates
+- Manage Wordlists
 
 **Level 2 - Categories:**
 - 📦 APT Tools - Package manager tools
@@ -62,6 +63,11 @@ python3 toolbelt.py
 - Update all ProjectDiscovery tools (pdtm)
 - Update all Go tools to @latest
 - Select individual tools to update (gum multi-select)
+
+**Wordlist Management:**
+- Install SecLists (comprehensive wordlist collection)
+- View installed wordlists and directory structure
+- Update SecLists from GitHub
 
 ### Pre-Built Profiles
 
@@ -213,6 +219,26 @@ python3 toolbelt.py
 - **Fast PD Update:** Option 2 uses `pdtm` for lightning-fast ProjectDiscovery tool updates
 - **Comprehensive Update:** Option 3 updates ALL Go tools (PD + non-PD)
 - **Selective Update:** Option 4 lets you cherry-pick which tools to update
+
+### Manage Wordlists
+
+```bash
+python3 toolbelt.py
+# Select: 6) Manage Wordlists
+
+# Option 1: Install SecLists (~500MB)
+# Option 2: View installed wordlists and structure
+# Option 3: Update SecLists from GitHub
+```
+
+**SecLists includes:**
+- **Passwords**: rockyou, common passwords, leaked databases
+- **Usernames**: Common usernames and names
+- **Subdomains**: DNS enumeration wordlists
+- **Directories**: Web content discovery lists
+- **Fuzzing**: XSS, SQLi, and other injection payloads
+
+**Installation location:** `~/wordlists/SecLists/`
 
 ---
 
