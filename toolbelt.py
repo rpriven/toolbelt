@@ -773,18 +773,42 @@ def update_selected_tools(logger):
 # Wordlist Management
 # ============================================================================
 
+def find_seclists_path():
+    """
+    Find SecLists installation path
+
+    Checks common locations:
+    1. /usr/share/seclists (Kali default, lowercase)
+    2. ~/wordlists/SecLists (custom install)
+
+    Returns:
+        Tuple of (path, found) - path is the location, found is True if exists
+    """
+    # Check Kali default location first (lowercase)
+    kali_path = "/usr/share/seclists"
+    if os.path.isdir(kali_path):
+        return (kali_path, True)
+
+    # Check custom install location
+    custom_path = os.path.expanduser("~/wordlists/SecLists")
+    if os.path.isdir(custom_path):
+        return (custom_path, True)
+
+    # Default to custom path if neither exists (for installation)
+    return (custom_path, False)
+
+
 def wordlist_menu(logger):
     """Wordlist management menu"""
     while True:
         print_section("📚 WORDLIST MANAGEMENT")
 
         # Check if SecLists is installed
-        seclists_path = os.path.expanduser("~/wordlists/SecLists")
-        seclists_installed = os.path.isdir(seclists_path)
+        seclists_path, seclists_installed = find_seclists_path()
 
         print(colorize("1)", 'green') + " Install SecLists")
         if seclists_installed:
-            print(colorize("   ✓ Already installed at ~/wordlists/SecLists", 'green'))
+            print(colorize(f"   ✓ Already installed at {seclists_path}", 'green'))
         else:
             print("   Comprehensive wordlist collection")
         print()
@@ -890,20 +914,14 @@ def view_wordlists(logger):
     """View installed wordlist directory structure"""
     print_section("📂 Installed Wordlists")
 
-    wordlists_dir = os.path.expanduser("~/wordlists")
+    seclists_path, seclists_installed = find_seclists_path()
 
-    if not os.path.isdir(wordlists_dir):
-        print_warning("No wordlists directory found")
-        print_info(f"Expected location: {wordlists_dir}")
-        print()
-        input("Press Enter to continue...")
-        return
-
-    seclists_path = os.path.join(wordlists_dir, "SecLists")
-
-    if not os.path.isdir(seclists_path):
+    if not seclists_installed:
         print_warning("SecLists not found")
         print_info("Use option 1 to install SecLists")
+        print_info(f"Checked locations:")
+        print_info(f"  • /usr/share/seclists (Kali default)")
+        print_info(f"  • ~/wordlists/SecLists (custom install)")
         print()
         input("Press Enter to continue...")
         return
@@ -951,7 +969,18 @@ def update_seclists(logger, seclists_installed: bool):
         input("Press Enter to continue...")
         return
 
-    seclists_path = os.path.expanduser("~/wordlists/SecLists")
+    seclists_path, _ = find_seclists_path()
+
+    print_info(f"Updating SecLists at: {seclists_path}")
+
+    # Check if this is a system-installed version
+    if seclists_path.startswith('/usr/'):
+        print_warning("SecLists is installed in system directory (/usr/share/seclists)")
+        print_info("This was likely installed via apt package manager")
+        print_info("To update: sudo apt update && sudo apt upgrade seclists")
+        print()
+        input("Press Enter to continue...")
+        return
 
     print_info("Pulling latest updates from GitHub...")
     print()
@@ -968,7 +997,8 @@ def update_seclists(logger, seclists_installed: bool):
             print_success("SecLists updated successfully!")
         else:
             print_warning("Update completed with issues")
-            print_info("Try reinstalling if problems persist (option 1)")
+            print_info("If this is a git repository, try: cd {seclists_path} && git pull")
+            print_info("Otherwise, reinstall with option 1")
 
         logger.info(f"SecLists update completed with exit code {result.returncode}")
 

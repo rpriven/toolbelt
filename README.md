@@ -1,5 +1,9 @@
 # Djedi Toolbelt v2.0
 
+<p align="center">
+  <img src="images/toolbelt.png" alt="Djedi Toolbelt" width="500">
+</p>
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python: 3.6+](https://img.shields.io/badge/Python-3.6+-blue.svg)](https://www.python.org/)
 
@@ -238,7 +242,10 @@ python3 toolbelt.py
 - **Directories**: Web content discovery lists
 - **Fuzzing**: XSS, SQLi, and other injection payloads
 
-**Installation location:** `~/wordlists/SecLists/`
+**Installation locations:**
+- Kali default: `/usr/share/seclists` (via apt package)
+- Custom install: `~/wordlists/SecLists/` (via git clone)
+- Toolbelt automatically detects both locations
 
 ---
 
