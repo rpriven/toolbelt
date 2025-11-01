@@ -11,6 +11,8 @@
 
 ---
 
+![Djedi Toolbelt](images/toolbelt.jpeg)
+
 ## 🚀 What's New in v2.0
 
 - ✅ **Interactive 3-Level Menu System** - Browse categories, select tools, install profiles
