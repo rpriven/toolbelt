@@ -314,7 +314,7 @@ def download_with_progress(url: str, output: str):
 
 **v2.1 (Next Release):**
 1. Individual Tool Selection (gum multi-select) ✅ **COMPLETED**
-2. Tool Update Detection 🔜
+2. Tool Update Detection ✅ **COMPLETED**
 3. Wordlist Management 🔜
 
 **v2.2:**

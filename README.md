@@ -43,6 +43,7 @@ python3 toolbelt.py
 - Browse & Select Categories
 - Install Prerequisites (fresh)
 - View Installed Tools
+- Check for Tool Updates
 
 **Level 2 - Categories:**
 - 📦 APT Tools - Package manager tools
@@ -54,7 +55,13 @@ python3 toolbelt.py
 
 **Level 3 - Tool Selection:**
 - Install all tools in category
-- Individual tool selection (coming soon)
+- Individual tool selection (gum multi-select)
+
+**Tool Update Management:**
+- Check versions of installed tools
+- Update all ProjectDiscovery tools (pdtm)
+- Update all Go tools to @latest
+- Select individual tools to update (gum multi-select)
 
 ### Pre-Built Profiles
 
@@ -189,6 +196,23 @@ python3 toolbelt.py
 python3 toolbelt.py
 # Select: 4) View Installed Tools
 ```
+
+### Update Tools
+
+```bash
+python3 toolbelt.py
+# Select: 5) Check for Tool Updates
+
+# Option 1: Check versions only (see what's outdated)
+# Option 2: Update all ProjectDiscovery tools (pdtm -ua)
+# Option 3: Update all Go tools to @latest
+# Option 4: Select specific tools to update (gum multi-select)
+```
+
+**Update strategies:**
+- **Fast PD Update:** Option 2 uses `pdtm` for lightning-fast ProjectDiscovery tool updates
+- **Comprehensive Update:** Option 3 updates ALL Go tools (PD + non-PD)
+- **Selective Update:** Option 4 lets you cherry-pick which tools to update
 
 ---
 

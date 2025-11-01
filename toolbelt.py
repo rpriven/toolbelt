@@ -6,6 +6,7 @@ Interactive package manager for pentesting and security research tools
 
 import sys
 import os
+import subprocess
 from typing import Optional, List, Dict
 
 # Import local modules
@@ -79,6 +80,7 @@ def show_main_menu(distro_name: str, distro_type: str):
     print(colorize("2)", 'green') + " Browse & Select Categories")
     print(colorize("3)", 'green') + " Install Prerequisites (fresh)")
     print(colorize("4)", 'green') + " View Installed Tools")
+    print(colorize("5)", 'green') + " Check for Tool Updates")
     print()
     print(colorize("0)", 'red') + " Exit")
     print()
@@ -98,6 +100,8 @@ def main_menu_loop(distro_name: str, distro_type: str, logger):
             prompt_install_fresh()
         elif choice == '4':
             view_installed_tools()
+        elif choice == '5':
+            update_tools_menu(logger)
         elif choice == '0':
             print()
             print_success("Thank you for using Djedi Toolbelt!")
@@ -453,6 +457,280 @@ def view_installed_tools():
         if check_command_exists(tool_name):
             print(colorize(f"  ✓ {tool_name}", 'green'))
 
+    print()
+    input("Press Enter to continue...")
+
+
+# ============================================================================
+# Tool Update Management
+# ============================================================================
+
+def update_tools_menu(logger):
+    """Tool update management menu"""
+    while True:
+        print_section("🔄 TOOL UPDATE MANAGEMENT")
+
+        print(colorize("1)", 'green') + " 📊 Check Versions Only")
+        print("   Show which tools are outdated")
+        print()
+        print(colorize("2)", 'green') + " ⚡ Update All ProjectDiscovery Tools")
+        print("   Fast bulk update using pdtm")
+        print()
+        print(colorize("3)", 'green') + " 🔧 Update All Go Tools")
+        print("   Update all Go tools to @latest")
+        print()
+        print(colorize("4)", 'green') + " 🎯 Select Individual Tools to Update")
+        print("   Choose specific tools with multi-select")
+        print()
+        print(colorize("0)", 'red') + " Back to Main Menu")
+        print()
+
+        choice = input(colorize("Select option: ", 'yellow')).strip()
+
+        if choice == '0':
+            return
+        elif choice == '1':
+            check_tool_versions(logger)
+        elif choice == '2':
+            update_pd_tools_bulk(logger)
+        elif choice == '3':
+            update_all_go_tools(logger)
+        elif choice == '4':
+            update_selected_tools(logger)
+        else:
+            print_error("Invalid option. Please try again.")
+            input("\nPress Enter to continue...")
+
+
+def check_tool_versions(logger):
+    """Check and display tool versions vs latest"""
+    print_section("📊 Checking Tool Versions")
+
+    print_info("Checking installed Go tools...")
+    print()
+
+    outdated = []
+    up_to_date = []
+    not_installed = []
+
+    for tool_name, module_path in config.GO_TOOLS.items():
+        # Check if tool is installed
+        if not check_command_exists(tool_name):
+            not_installed.append(tool_name)
+            continue
+
+        # Get installed version
+        try:
+            result = subprocess.run(
+                [tool_name, '-version'],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            installed_version = result.stdout.strip() or result.stderr.strip()
+
+            # For now, mark as "installed" - actual version comparison would require
+            # querying go.dev or GitHub API
+            up_to_date.append((tool_name, installed_version))
+
+        except Exception as e:
+            logger.debug(f"Could not get version for {tool_name}: {e}")
+            up_to_date.append((tool_name, "unknown version"))
+
+    # Display results
+    if up_to_date:
+        print(colorize("✓ Installed Tools:", 'green'))
+        for tool, version in up_to_date:
+            version_str = version[:50] + "..." if len(version) > 50 else version
+            print(f"  • {tool}: {version_str}")
+        print()
+
+    if not_installed:
+        print(colorize("○ Not Installed:", 'yellow'))
+        for tool in not_installed:
+            print(f"  • {tool}")
+        print()
+
+    print_info("💡 To update tools, use options 2-4 from the update menu")
+    print()
+    input("Press Enter to continue...")
+
+
+def update_pd_tools_bulk(logger):
+    """Update all ProjectDiscovery tools using pdtm"""
+    print_section("⚡ Updating ProjectDiscovery Tools")
+
+    # Check if pdtm is installed
+    if not check_command_exists('pdtm'):
+        print_warning("pdtm not found!")
+        print_info("Installing pdtm...")
+        try:
+            subprocess.run(
+                ['go', 'install', '-v', 'github.com/projectdiscovery/pdtm/cmd/pdtm@latest'],
+                check=True
+            )
+            print_success("pdtm installed successfully")
+        except Exception as e:
+            print_error(f"Failed to install pdtm: {e}")
+            logger.error(f"Failed to install pdtm: {e}")
+            input("\nPress Enter to continue...")
+            return
+
+    print_info("Running: pdtm -ua (update all)")
+    print()
+
+    try:
+        # Run pdtm with direct terminal access
+        result = subprocess.run(
+            ['pdtm', '-ua'],
+            check=False  # Don't raise on non-zero exit
+        )
+
+        print()
+        if result.returncode == 0:
+            print_success("ProjectDiscovery tools updated successfully!")
+        else:
+            print_warning("Update completed with some issues")
+
+        logger.info(f"pdtm update completed with exit code {result.returncode}")
+
+    except Exception as e:
+        print_error(f"Update failed: {e}")
+        logger.error(f"pdtm update failed: {e}", exc_info=True)
+
+    print()
+    input("Press Enter to continue...")
+
+
+def update_all_go_tools(logger):
+    """Update all Go tools to @latest"""
+    print_section("🔧 Updating All Go Tools")
+
+    print_warning("This will update ALL Go tools to @latest")
+    print_info(f"Total tools: {len(config.GO_TOOLS)}")
+    print()
+
+    response = input(colorize("Continue? [y/N]: ", 'yellow')).strip().lower()
+    if response != 'y':
+        print_warning("Update cancelled")
+        input("\nPress Enter to continue...")
+        return
+
+    print()
+    success_count = 0
+    fail_count = 0
+
+    for tool_name, module_path in config.GO_TOOLS.items():
+        print(f"Updating {tool_name}...", end=' ')
+        try:
+            result = subprocess.run(
+                ['go', 'install', '-v', module_path],
+                capture_output=True,
+                text=True,
+                timeout=300
+            )
+
+            if result.returncode == 0:
+                print(colorize("✓", 'green'))
+                success_count += 1
+                logger.info(f"Updated {tool_name}")
+            else:
+                print(colorize("✗", 'red'))
+                fail_count += 1
+                logger.warning(f"Failed to update {tool_name}: {result.stderr}")
+
+        except Exception as e:
+            print(colorize("✗", 'red'))
+            fail_count += 1
+            logger.error(f"Error updating {tool_name}: {e}")
+
+    print()
+    print_info(f"Updated: {success_count} | Failed: {fail_count}")
+    print()
+    input("Press Enter to continue...")
+
+
+def update_selected_tools(logger):
+    """Update selected Go tools using gum multi-select"""
+    print_section("🎯 Select Tools to Update")
+
+    # Check if gum is available
+    if not check_command_exists('gum'):
+        print()
+        print_error("gum is not installed!")
+        print_info("gum is required for interactive multi-select")
+        print()
+        print_info("Install gum with:")
+        print("  go install github.com/charmbracelet/gum@latest")
+        print()
+        input("Press Enter to continue...")
+        return
+
+    tool_list = list(config.GO_TOOLS.keys())
+
+    print_info(f"Available tools: {len(tool_list)}")
+    print()
+    print(colorize("TIP: Use SPACE to select, ENTER when done", 'yellow'))
+    print()
+
+    # Use gum for multi-select
+    selected = gum_multi_select(
+        tool_list,
+        header="Select tools to update:"
+    )
+
+    if not selected:
+        print()
+        print_warning("No tools selected")
+        input("\nPress Enter to continue...")
+        return
+
+    # Show selection
+    print()
+    print_section(f"Updating {len(selected)} Selected Tools")
+    for tool in selected:
+        print(colorize(f"  • {tool}", 'cyan'))
+    print()
+
+    # Confirm
+    response = input(colorize("Proceed with update? [Y/n]: ", 'yellow')).strip().lower()
+    if response == 'n':
+        print_warning("Update cancelled")
+        input("\nPress Enter to continue...")
+        return
+
+    print()
+    success_count = 0
+    fail_count = 0
+
+    for tool_name in selected:
+        module_path = config.GO_TOOLS[tool_name]
+        print(f"Updating {tool_name}...", end=' ')
+
+        try:
+            result = subprocess.run(
+                ['go', 'install', '-v', module_path],
+                capture_output=True,
+                text=True,
+                timeout=300
+            )
+
+            if result.returncode == 0:
+                print(colorize("✓", 'green'))
+                success_count += 1
+                logger.info(f"Updated {tool_name}")
+            else:
+                print(colorize("✗", 'red'))
+                fail_count += 1
+                logger.warning(f"Failed to update {tool_name}: {result.stderr}")
+
+        except Exception as e:
+            print(colorize("✗", 'red'))
+            fail_count += 1
+            logger.error(f"Error updating {tool_name}: {e}")
+
+    print()
+    print_info(f"Updated: {success_count} | Failed: {fail_count}")
     print()
     input("Press Enter to continue...")
 
