@@ -446,9 +446,9 @@ def download_useful_scripts(
     if logger:
         logger.info(f"Downloading scripts: {', '.join(scripts.keys())}")
 
-    # Create scripts directory in user's home (not /root!)
+    # Create scripts/payloads directory in user's home (not /root!)
     home = get_home_dir()
-    scripts_dir = os.path.join(home, 'scripts')
+    scripts_dir = os.path.join(home, 'scripts', 'payloads')
     ensure_directory(scripts_dir)
 
     success_count = 0

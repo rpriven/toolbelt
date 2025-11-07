@@ -143,7 +143,7 @@ wfuzz, arjun, scrapy, tld, requests, fuzzywuzzy
 **RustScan** - Fast port scanner
 - Includes alias setup for shell
 
-### Useful Scripts (downloaded to ~/scripts)
+### Useful Scripts (downloaded to ~/scripts/payloads)
 
 - **linpeas.sh** - Linux privilege escalation
 - **jaws-enum.ps1** - Windows enumeration

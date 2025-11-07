@@ -130,7 +130,7 @@ DOCKER_TOOLS = {
     },
 }
 
-# Useful Scripts - Downloaded to ~/scripts
+# Useful Scripts - Downloaded to ~/scripts/payloads
 USEFUL_SCRIPTS = {
     "linpeas.sh": "https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh",
     "jaws-enum.ps1": "https://github.com/411Hall/JAWS/raw/master/jaws-enum.ps1",
